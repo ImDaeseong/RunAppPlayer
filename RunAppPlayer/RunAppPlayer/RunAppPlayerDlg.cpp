@@ -152,7 +152,11 @@ void CRunAppPlayerDlg::IsAppPlayerRunning()
 			hAppPlayer = FindWindowLikeTitle(ClassEnts[i].chClassName, ClassEnts[i].chWindowTitle, &dwWndProcessID);
 
 		if(hAppPlayer)
-		{
+		{			
+			HWND hwnd = ::GetForegroundWindow();//::GetActiveWindow();		
+			if(hAppPlayer != hwnd )
+				continue;
+
 			if( ClassEnts[i].nPlayer == 1)
 			{
 				playerInfo obj;
@@ -203,7 +207,6 @@ BOOL CRunAppPlayerDlg::OnInitDialog()
 	MoveWindow(-3333, -3333, 1, 1);
 
 	SetTimer(1, 10000, NULL);
-
 
 	return TRUE;  
 }
