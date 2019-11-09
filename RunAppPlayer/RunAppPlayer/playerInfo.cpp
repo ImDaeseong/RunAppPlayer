@@ -9,48 +9,93 @@ playerInfo::~playerInfo(void)
 {
 }
 
-BOOL playerInfo::RunBlueStacks(CString strpackage, CString stractivity)
+BOOL playerInfo::RunBlueStacks(CString strpackage, CString stractivity, DWORD dwWndProcessID)
 {
-	CString strInstallDir = IsExistBlueStacksInfo("InstallDir");
+	CString sFullPath = GetPrcessFilePath(dwWndProcessID);
+	if(sFullPath == "")
+	{
+		CString strInstallDir = IsExistBlueStacksInfo("InstallDir");
+		
+		CString strAppExe;
+		strAppExe.Format("%s\\HD-RunApp.exe", GetFilePath(strInstallDir));
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
 
-	
-	CString strAppExe;
-	strAppExe.Format("%s\\HD-RunApp.exe", GetFilePath(strInstallDir));
-	if(!::PathFileExists(strAppExe)) 
-		return FALSE;
+		CString strParams;	
+		strParams.Format(" -p %s -a %s", strpackage, stractivity);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+	}
+	else
+	{
+		CString strAppExe;
+		strAppExe.Format("%s", sFullPath);
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
 
-	CString strParams;	
-	strParams.Format(" -p %s -a %s", strpackage, stractivity);
-	HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+		CString strParams;	
+		strParams.Format(" -p %s -a %s", strpackage, stractivity);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+	}
 	
 	return TRUE;
 }
 
-BOOL playerInfo::RunDnplayer(CString strPackageName)
+BOOL playerInfo::RunDnplayer(CString strPackageName, DWORD dwWndProcessID)
 {
-	CString strAppExe;
-	strAppExe.Format("D:\\LDPlayer\\dnplayer.exe");
+	CString sFullPath = GetPrcessFilePath(dwWndProcessID);
+	if(sFullPath == "")
+	{
+		CString strAppExe;
+		strAppExe.Format("D:\\LDPlayer\\dnplayer.exe");
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
 
-	CString strParams;
-	strParams.Format("package=%s", strPackageName);
+		CString strParams;
+		strParams.Format("package=%s", strPackageName);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+	}
+	else
+	{
+		CString strAppExe;
+		strAppExe.Format("%s", sFullPath);
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
 
-	HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+		CString strParams;
+		strParams.Format("package=%s", strPackageName);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);	
+	}
 
 	return TRUE;
 }
 
-BOOL playerInfo::RunNox(CString strPackageName)
+BOOL playerInfo::RunNox(CString strPackageName, DWORD dwWndProcessID)
 {
-	CString strInstallDir = IsExistNoxInfo("UninstallString");
+	CString sFullPath = GetPrcessFilePath(dwWndProcessID);
+	if(sFullPath == "")
+	{
+		CString strInstallDir = IsExistNoxInfo("UninstallString");
 
-	CString strAppExe;
-	strAppExe.Format("%s\\_Nox.exe", GetFilePath(strInstallDir));
-	if(!::PathFileExists(strAppExe)) 
-		return FALSE;
+		CString strAppExe;
+		strAppExe.Format("%s\\_Nox.exe", GetFilePath(strInstallDir));
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
 
-	CString strParams;
-	strParams.Format("%s -package:%s", strAppExe, strPackageName);
-	HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+		CString strParams;
+		strParams.Format("-package:%s", strPackageName);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);
+	}
+	else
+	{
+		CString strAppExe;
+		strAppExe.Format("%s", sFullPath);
+		if(!::PathFileExists(strAppExe)) 
+			return FALSE;
+
+		CString strParams;
+		strParams.Format("-package:%s", strPackageName);
+		HINSTANCE hInstance = ::ShellExecute(NULL, "open", strAppExe, strParams, NULL, SW_SHOW);	
+	}
 	
 	return TRUE;
 }
@@ -177,4 +222,64 @@ BOOL playerInfo::IsWindows64Bit()
 	BOOL b = FALSE;
 	IsWow64Process(GetCurrentProcess(), &b);
 	return b;
+}
+
+CString playerInfo::GetPrcessFilePath(DWORD processID)
+{
+	CString strFilePath;
+
+	PROCESSENTRY32 proc;
+	proc.dwSize = sizeof(PROCESSENTRY32);
+
+	HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	::Process32First(snapshot, &proc);
+
+	while (TRUE == ::Process32Next(snapshot, &proc))
+	{
+		if (proc.th32ProcessID == processID)
+		{
+			MODULEENTRY32 me;
+			me.dwSize = sizeof(MODULEENTRY32);
+
+			CloseHandle(snapshot);
+
+			snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, proc.th32ProcessID);
+			::Module32First(snapshot, &me);
+
+			strFilePath.Format("%s", me.szExePath);
+
+			break;
+		}
+	}
+	::CloseHandle(snapshot);
+
+	return strFilePath;
+}
+
+CString playerInfo::GetPrcessFileName(DWORD processID)
+{	
+	CString strFileName;
+
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(pe32);
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hProcessSnap)
+	{
+		if (Process32First(hProcessSnap, &pe32))
+		{
+			do 
+			{				
+				if(pe32.th32ProcessID == processID)
+				{	 
+					strFileName.Format("%s", pe32.szExeFile);
+					break;
+				}
+
+			} while (Process32Next(hProcessSnap, &pe32));
+		}
+	}
+	CloseHandle(hProcessSnap);
+
+	return strFileName;
 }

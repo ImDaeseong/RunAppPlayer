@@ -18,6 +18,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	CString GetPrcessFileName(DWORD processID);
 	void IsAppPlayerRunning();	
 };

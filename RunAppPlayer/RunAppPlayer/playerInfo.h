@@ -8,9 +8,9 @@ public:
 
 public:
 
-	BOOL RunBlueStacks(CString strpackage, CString stractivity);
-	BOOL RunDnplayer(CString strPackageName);
-	BOOL RunNox(CString strPackageName);
+	BOOL RunBlueStacks(CString strpackage, CString stractivity, DWORD dwWndProcessID = 0);
+	BOOL RunDnplayer(CString strPackageName, DWORD dwWndProcessID = 0);
+	BOOL RunNox(CString strPackageName, DWORD dwWndProcessID = 0);
 
 	CString IsExistNoxInfo(LPCTSTR szKey);
 	CString GetFilePath(CString strFilename);
@@ -18,4 +18,6 @@ public:
 	CString IsExistBlueStacksInfo(LPCTSTR szKey);
 
 	BOOL IsWindows64Bit();
+	CString GetPrcessFilePath(DWORD processID);
+	CString GetPrcessFileName(DWORD processID);
 };

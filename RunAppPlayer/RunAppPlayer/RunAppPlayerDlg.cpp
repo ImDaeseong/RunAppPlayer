@@ -112,33 +112,6 @@ HWND FindWindowLikeClass(LPCTSTR pszClassName, LPDWORD pRetProcessID)
 	return param.hwnd;
 }
 
-CString CRunAppPlayerDlg::GetPrcessFileName(DWORD processID)
-{
-	CString strFileName;
-
-	PROCESSENTRY32 pe32;
-	pe32.dwSize = sizeof(pe32);
-	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap)
-	{
-		if (Process32First(hProcessSnap, &pe32))
-		{
-			do 
-			{				
-				if(pe32.th32ProcessID == processID)
-				{
-					strFileName.Format("%s", pe32.szExeFile);
-					break;
-				}
-
-			} while (Process32Next(hProcessSnap, &pe32));
-		}
-	}
-	CloseHandle(hProcessSnap);
-
-	return strFileName;
-}
-
 void CRunAppPlayerDlg::IsAppPlayerRunning()
 {
 	for(int i=0; i< NumEnt; i++)
@@ -153,28 +126,25 @@ void CRunAppPlayerDlg::IsAppPlayerRunning()
 
 		if(hAppPlayer)
 		{			
-			HWND hwnd = ::GetForegroundWindow();//::GetActiveWindow();		
+			HWND hwnd = ::GetForegroundWindow();//::GetActiveWindow();	
 			if(hAppPlayer != hwnd )
 				continue;
 
 			if( ClassEnts[i].nPlayer == 1)
 			{
 				playerInfo obj;
-				obj.RunDnplayer("com.kakaogames.moonlight");
+				obj.RunDnplayer("com.kakaogames.moonlight", dwWndProcessID);
 			}
 			else if( ClassEnts[i].nPlayer == 2)
-			{
+			{				
 				playerInfo obj;
-				obj.RunNox("com.kakaogames.moonlight");
+				obj.RunNox("com.kakaogames.moonlight", dwWndProcessID);
 			}
 			else if( ClassEnts[i].nPlayer == 3)
 			{
 				playerInfo obj;
-				obj.RunBlueStacks("com.kakaogames.moonlight", "com.kakaogame.KGUnityPlayerActivity");
-			}		
-
-			//CString sFileName = GetPrcessFileName(dwWndProcessID);
-		
+				obj.RunBlueStacks("com.kakaogames.moonlight", "com.kakaogame.KGUnityPlayerActivity", dwWndProcessID);
+			}				
 		}
 	}
 
